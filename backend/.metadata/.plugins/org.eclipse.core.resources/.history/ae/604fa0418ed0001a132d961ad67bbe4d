@@ -1,0 +1,45 @@
+package com.yash.service;
+
+
+import java.util.Optional;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.yash.domain.User;
+import com.yash.exception.EmailException;
+import com.yash.payload.LoginRequest;
+import com.yash.repository.UserRepository;
+
+import net.bytebuddy.asm.Advice.Return;
+
+@Service
+public class UserService {
+
+	@Autowired
+	UserRepository userRepository;
+
+	public User saveUser(User newUser) {
+			Optional<User> optional = userRepository.findByEmail(newUser.getEmail());
+			if(!optional.isPresent()) {
+				try {
+					newUser.setConfirmPassword("");
+					return userRepository.save(newUser);
+				} catch (Exception e) {
+					System.out.println("error: "+e);
+					throw new EmailException("Email " +newUser.getEmail().toString()+ " already exsits.");
+				}
+			}else {
+				throw new EmailException("Email " +newUser.getEmail().toString()+ " already exsits.");
+			}
+
+
+			
+	}
+	
+	
+	public User loginUser(LoginRequest loginUser) {
+		return userRepository.findByEmailAndPassword(loginUser.getEmail(), loginUser.getPassword());
+	}
+
+}
